@@ -95,7 +95,7 @@ void draw() {
       drawBackground();
       
       if(millis() >= nextDangerSpawn){
-        spawnDangerWord(currentLevel * 3.5);
+        spawnDangerWord(currentLevel * 3);
       }
       
       removeOldTimestamps(millis());
@@ -111,7 +111,9 @@ void draw() {
       if(currentLevel != 3){
         drawCurrentWord();
       }else{
-        text("yo", 400, 400);
+        if(!wordBurnt()){
+          drawFallingWord();
+        }
       }
       
       displayUserInput();
@@ -218,6 +220,13 @@ boolean checkDangerWord(){
   return true;
 }
 
+boolean wordBurnt(){
+  if(wordY >= highestFireParticleY) {
+    return true;
+  }
+  return false;
+}
+
 void resetLevel(){
   resetDangerWord();
   updateWord();
@@ -238,6 +247,8 @@ void resetDangerWord(){
 void updateWord(){
   typedText = ""; // reset user inputted string
   currentWord = RiTa.randomWord(wordsRules);
+  wordY = height/8; // reset level 3 word height
+  highestFireParticleY = 800; 
 }
 
 void updateTemperature(){

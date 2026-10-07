@@ -30,6 +30,10 @@ class FireParticle {
     vel.add(acc);
     pos.add(vel);
     
+    if(pos.y < highestFireParticleY && temperature > 1000){
+      highestFireParticleY = pos.y;
+    }
+    
     temperature -= 100;
     temperature -= (600 - pos.y) / 2;
     

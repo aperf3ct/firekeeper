@@ -105,6 +105,9 @@ void drawInfo(){
   }
 }
 
+float wordY = height/8;
+float highestFireParticleY = 800;
+
 void drawCurrentWord(){
   fill(255);
   textAlign(CENTER);
@@ -114,7 +117,8 @@ void drawCurrentWord(){
 void drawFallingWord(){
   fill(255);
   textAlign(CENTER);
-  text(currentWord, width/2, height/8 * 1.2);
+  wordY = wordY+10;
+  text(currentWord, width/2, wordY);
 }
 
 void drawRain(){
@@ -163,7 +167,7 @@ void drawFire(){
   for(int i = 0; i < particles.size(); i++){
     FireParticle particle = particles.get(i);
     
-    particle.drawParticle();
+    if(particle.temperature >0) particle.drawParticle();
     
     // save particles for next frame
     if(particle.pos.y >= -particle.radius){
