@@ -12,7 +12,7 @@ enum State{
 }
  
 State currentState = State.MENU;
-int currentLevel = 3;
+int currentLevel = 1;
 
 String typedText = "";
 Map<String, Object> wordsRules; 
@@ -40,6 +40,8 @@ int accuracyWindowSize = 10000;
 float smoothedAccuracy = 1;
 
 int temperature = 4500;
+
+boolean drawingRespawn = false;
 
 // BACKGROUNDS
 PImage treesBack;
@@ -116,6 +118,7 @@ void draw() {
           drawFallingWord();
         }else{
           drawRespawnWord();
+          drawingRespawn = true;
         }
       }
       
@@ -199,6 +202,19 @@ void keyTyped() {
       indexOfBadChar = -1;
     }
   }
+}
+
+void mousePressed(){
+  if(drawingRespawn == false) return;
+  
+  float respawnWordY = height/8;
+  
+  if(mouseX >= respawnWordX - respawnWidth && mouseX <= respawnWordX + respawnWidth &&
+     mouseY >= respawnWordY - respawnWidth && mouseY <= respawnWordY + respawnWidth){
+      println("clicked");
+      wordY = height/8;
+    }
+  
 }
 
 boolean typedIsCorrect(){

@@ -121,10 +121,18 @@ void drawFallingWord(){
   text(currentWord, width/2, wordY);
 }
 
+float respawnWidth = 40;
+float respawnWordX = 0 + respawnWidth;
+float respawnWordSpeed = random(5, 10);
+
 void drawRespawnWord(){
+  respawnWordX += respawnWordSpeed;
   
+  if(respawnWordX + respawnWidth > width || respawnWordX - respawnWidth < 0){
+    respawnWordSpeed = -respawnWordSpeed;
+  }
   
-  ellipse(100, height/8, 40, 40);
+  ellipse(respawnWordX, height/8, 40, 40);
 }
 
 void drawRain(){
