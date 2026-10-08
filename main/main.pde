@@ -11,8 +11,8 @@ enum State{
   GAMEOVER
 }
  
-State currentState = State.WIN;
-int currentLevel = 2;
+State currentState = State.MENU;
+int currentLevel = 3;
 
 String typedText = "";
 Map<String, Object> wordsRules; 
@@ -56,6 +56,7 @@ void setup() {
   size(800, 800);
   frameRate(30);
   textSize(50);
+  pixelDensity(1);
   textAlign(LEFT);
   rectMode(CORNERS);
   
@@ -113,6 +114,8 @@ void draw() {
       }else{
         if(!wordBurnt()){
           drawFallingWord();
+        }else{
+          drawRespawnWord();
         }
       }
       

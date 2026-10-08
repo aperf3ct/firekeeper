@@ -121,6 +121,12 @@ void drawFallingWord(){
   text(currentWord, width/2, wordY);
 }
 
+void drawRespawnWord(){
+  
+  
+  ellipse(100, height/8, 40, 40);
+}
+
 void drawRain(){
   stroke(74,101,220,90);
   for(int i = 0; i < d.length; i++) {
