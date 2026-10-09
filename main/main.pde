@@ -12,13 +12,13 @@ enum State{
 }
  
 State currentState = State.MENU;
-int currentLevel = 1;
+int currentLevel = 3;
 
 String typedText = "";
 Map<String, Object> wordsRules; 
 String currentWord;
-String dangerWord;
-float nextDangerSpawn = random(5000, 15000);
+String fuelWord;
+float nextDangerSpawn = random(10000, 15000);
 int indexOfBadChar = -1;
 
 // TEXT BOX x AND y VALUES
@@ -51,7 +51,6 @@ PImage nightSky;
 PFont menuFont;
 PFont font;
 
-int numOfRain = 200;
 drop[] d;
 
 void setup() {
@@ -62,11 +61,14 @@ void setup() {
   textAlign(LEFT);
   rectMode(CORNERS);
   
+  // RiTA library rules
   wordsRules = new HashMap();
   wordsRules.put("maxLength", 8);
-  currentWord = RiTa.randomWord(wordsRules);
-  dangerWord = RiTa.randomWord(wordsRules).toUpperCase();
   
+  currentWord = RiTa.randomWord(wordsRules);
+  fuelWord = RiTa.randomWord(wordsRules).toUpperCase();
+  
+  // Set text box coords
   textX1 = width/2 - 150;
   textY1 = height - 150;
   textX2 = width / 2 + 150;
@@ -75,6 +77,7 @@ void setup() {
   keystrokes = new ArrayDeque<>();
   accuracyWindow = new ArrayDeque<>();
   
+  // Intialise external files - images and fonts
   treesFront = loadImage("PineForestParallax/MorningLayer1.png");
   treesBack = loadImage("PineForestParallax/MorningLayer2.png");
   nightSky = loadImage("night.png");
@@ -82,6 +85,8 @@ void setup() {
   menuFont = createFont("Beside Horizon.otf", 50);
   textFont(font);
   
+  // Create array filled with raindrop objects
+  int numOfRain = 200;
   d = new drop[numOfRain];
   for(int i = 0; i < d.length; i ++) {
     d[i] = new drop(random(width), random(0, 800), random(5));
@@ -98,7 +103,7 @@ void draw() {
       drawBackground();
       
       if(millis() >= nextDangerSpawn){
-        spawnDangerWord(currentLevel * 3);
+        spawnFuelWord(currentLevel * 3);
       }
       
       removeOldTimestamps(millis());
@@ -108,14 +113,20 @@ void draw() {
       computeAccuracy();
       
       updateTemperature();
+      
+      // DEBUG TEMPERATURE
       //fill(255, 255, 255);
       //text(temperature + "°C", 10, 50);
+      
       drawInfo();
+      
+      // LEVEL 3 LOGIC
       if(currentLevel != 3){
         drawCurrentWord();
       }else{
         if(!wordBurnt()){
           drawFallingWord();
+          drawingRespawn = false;
         }else{
           drawRespawnWord();
           drawingRespawn = true;
@@ -123,8 +134,8 @@ void draw() {
       }
       
       displayUserInput();
-      
-      if(currentLevel == 2) drawRain();
+      // LEVEL 2 LOGIC
+      if(currentLevel == 2) drawRain(); // drawn last to cover info
       
       if(typedIsCorrect()) updateWord();
       
@@ -144,17 +155,17 @@ void draw() {
 
 void keyTyped() {
   if(currentState == State.MENU && key == ' '){
-    currentState = State.LEVEL;
+    currentState = State.LEVEL; // start game
   }
   
   else if(currentState == State.GAMEOVER && key == ' '){
     resetLevel();
-    currentState = State.LEVEL;
+    currentState = State.LEVEL; // restart from death
   }
   
   else if(currentState == State.WIN && key == ' '){
     resetLevel();
-    
+    // switch levels on win
     if(currentLevel == 1){
       currentState = State.LEVEL;
       currentLevel = 2;
@@ -182,8 +193,12 @@ void keyTyped() {
     typedText += key;
     
     if(Character.isUpperCase(key)){
-      boolean isCorrect = checkDangerWord();
-      if(isCorrect) resetDangerWord();
+      boolean isCorrect = checkFuelWord();
+      if(isCorrect){
+        temperature += 1500;
+        typedText = "";
+        resetFuelWord();
+      }
       return;
     }
     
@@ -197,10 +212,6 @@ void keyTyped() {
     if(!isCorrect && indexOfBadChar == -1){
       indexOfBadChar = typedText.length() - 1;
     }
-    
-    else if(isCorrect && typedText.length() != 0){
-      indexOfBadChar = -1;
-    }
   }
 }
 
@@ -209,9 +220,9 @@ void mousePressed(){
   
   float respawnWordY = height/8;
   
+  // bounding box collision check: mouse coords against circle  coords
   if(mouseX >= respawnWordX - respawnWidth && mouseX <= respawnWordX + respawnWidth &&
      mouseY >= respawnWordY - respawnWidth && mouseY <= respawnWordY + respawnWidth){
-      println("clicked");
       wordY = height/8;
     }
   
@@ -221,7 +232,6 @@ boolean typedIsCorrect(){
   if(!typedText.equals(currentWord)) {
     return false;
   }
-  //println("correct");
   return true;
 }
 
@@ -231,11 +241,11 @@ boolean keystrokeIsCorrect(){
   if (typedSize == 0)  return true;
   else if(typedSize > currentWord.length()) return false; // prevents index out of bound exception
   else if(typedText.equals(currentWord.substring(0, typedSize))) return true;
-  else { return false; }
+  else return false; 
 }
 
-boolean checkDangerWord(){
-  if(!typedText.equals(dangerWord)) return false;
+boolean checkFuelWord(){
+  if(!typedText.equals(fuelWord)) return false;
   return true;
 }
 
@@ -247,8 +257,9 @@ boolean wordBurnt(){
 }
 
 void resetLevel(){
-  resetDangerWord();
+  resetFuelWord();
   updateWord();
+  
   temperature = 4500;
   smoothedSpeed = 1;
   smoothedAccuracy = 1;
@@ -256,11 +267,10 @@ void resetLevel(){
   particles.clear();
 }
 
-void resetDangerWord(){
-  typedText = "";
-  dangerX = 0;
-  dangerWord = RiTa.randomWord(wordsRules).toUpperCase();
-  nextDangerSpawn = millis() + random(5000, 15000);
+void resetFuelWord(){
+  fuelX = 0;
+  fuelWord = RiTa.randomWord(wordsRules).toUpperCase();
+  nextDangerSpawn = millis() + random(10000, 15000);
 }
 
 void updateWord(){
@@ -274,7 +284,7 @@ void updateTemperature(){
   constrain(temperature, 0, 10000);
   
   temperature *= 0.994; // decay
-  temperature += 16 * smoothedSpeed * smoothedAccuracy;
+  temperature += 16 * smoothedSpeed * smoothedAccuracy; // rate of growth
   
   if(temperature <= 1600) currentState = State.GAMEOVER;
 }

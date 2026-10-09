@@ -23,7 +23,6 @@ void drawBackground(){
   background(0,0,15);
   image(nightSky, 0, 0, width, 500);
   tint(155,0,100);
-  //tint(25,25,112);
   image(treesBack, 0, height/4, width, height/2);
   tint(0,0,255);
   image(treesFront, 0, height/4, width, height/2);
@@ -34,8 +33,8 @@ void drawGameOver(){
   background(0);
   fill(255);
   textAlign(CENTER);
-  text("you lost :(", width/2, height/2);
-  text("press [SPACE] to restart", width/2, height/2 + 60);
+  text("You lost :(", width/2, height/2);
+  text("Press [SPACE] to restart", width/2, height/2 + 60);
 }
 
 void drawWin(){
@@ -45,8 +44,10 @@ void drawWin(){
   if(currentLevel == 2) {
     drawRain();
   }
+  
   textAlign(CENTER);
   fill(255);
+  
   text("YOU WIN!", width/2, 100);
   textSize(46);
   text("Press [SPACE] to continue", width/2, 700);
@@ -54,13 +55,14 @@ void drawWin(){
 
 ArrayList<FireParticle> particles = new ArrayList<>();
 
-float successThreshold = 10000; // milliseconds
-float successTime = 0;
-float dangerX = 0;
-
+boolean isAllUpperCase(String str) {
+  if (str == null || str.isEmpty()) {
+      return false;
+  }
+  return str.equals(str.toUpperCase());
+}
 
 void displayUserInput(){
-  //noFill();
   textAlign(LEFT);
   stroke(100);
   strokeWeight(5);
@@ -68,7 +70,10 @@ void displayUserInput(){
   rect(textX1, textY1, textX2, textY2);
   
   fill(255); // font colour
-  if(indexOfBadChar == -1){
+  if(isAllUpperCase(typedText)){
+    fill(255, 165, 0); // fuel word colour
+    text(typedText, textX1 + 5, textY1 + 10, textX2, textY2);
+  }else if(indexOfBadChar == -1){
     text(typedText, textX1 + 5, textY1 + 10, textX2, textY2); // User input
   }
   else{
@@ -81,9 +86,11 @@ void displayUserInput(){
     fill(255, 0, 0);
     text(badChars, textX1 + 5 + goodCharsWidth, textY1 + 10, textX2, textY2);
     fill(255);
-    
   }
 }
+
+float successThreshold = 10000; // milliseconds
+float successTime = 0;
 
 void drawInfo(){
   drawFire();
@@ -94,7 +101,7 @@ void drawInfo(){
   } 
 
   if (successTime == 0) {
-    successTime = millis();
+    successTime = millis(); // player has crossed success threshold here
   }
   
   float elapsed = millis() - successTime;
@@ -117,13 +124,13 @@ void drawCurrentWord(){
 void drawFallingWord(){
   fill(255);
   textAlign(CENTER);
-  wordY = wordY+10;
+  wordY = wordY+20; // draw the target word falling down screen
   text(currentWord, width/2, wordY);
 }
 
 float respawnWidth = 40;
 float respawnWordX = 0 + respawnWidth;
-float respawnWordSpeed = random(5, 10);
+float respawnWordSpeed = random(8, 10);
 
 void drawRespawnWord(){
   respawnWordX += respawnWordSpeed;
@@ -142,18 +149,23 @@ void drawRain(){
     d[i].update();
   }
 }
-void spawnDangerWord(float speed){
-  if(dangerX - textWidth(dangerWord) > width){
-    currentState = State.GAMEOVER;
+
+float fuelX = 0;
+
+void spawnFuelWord(float speed){
+  if(fuelX - textWidth(fuelWord) > width){
+    resetFuelWord(); // fuel word moved off the screen
   }
+  push();
   
-  fill(255, 0, 0);
+  fill(255, 165, 0);
   textSize(32);
   textAlign(RIGHT);
-  text(dangerWord, dangerX, height - 25);
-  dangerX += speed;
-  textAlign(LEFT);
-  textSize(50);
+  
+  text(fuelWord, fuelX, height - 25);
+  fuelX += speed;
+  
+  pop();
 }
 
 /*
@@ -167,6 +179,7 @@ void spawnDangerWord(float speed){
 
 void drawFire(){
   noStroke();
+  
   // DRAW ROCKS
   fill(80);
   ellipse(width/2 - 40, 610, 20, 20);
@@ -181,35 +194,35 @@ void drawFire(){
   for(int i = 0; i < particles.size(); i++){
     FireParticle particle = particles.get(i);
     
-    if(particle.temperature >0) particle.drawParticle();
+    if(particle.temperature > 0) particle.drawParticle(); // don't draw if temp < 0
     
     // save particles for next frame
     if(particle.pos.y >= -particle.radius){
       nextParticles.add(particle);
     }
   }
-  
+  // add new fire particles to fire
   int numFireParticles = 100;
   for(int i = 0; i < numFireParticles; i++){
     float radius = random(10) * sq(random(1));
     nextParticles.add(new FireParticle(width/2, 600, radius, temperature));
   }
-  
   particles = nextParticles;
+  
   colorMode(RGB, 255, 255, 255);
 }
 
 float[] tempColor(float temperature) {
   float alphaStandard = 100;
-  if (temperature < 1000) {
+  if (temperature < 1000) { // RED
     return new float[] {0, 100, 100, alphaStandard * (temperature - 200) / 1000};
-  } else if (temperature < 3000) {
+  } else if (temperature < 3000) { // ORANGE
     return new float[] {100 * (1.0 / 12) * ((temperature - 1000) / 2000), 100, 100, alphaStandard};
-  } else if (temperature < 6500) {
+  } else if (temperature < 6500) { // YELLOW
     return new float[] {100 * (1.0 / 12), 100 * (1 - (temperature - 3000) / 3500), 100, alphaStandard};
-  } else if (temperature < 10000) {
+  } else if (temperature < 10000) { // WHITE
     return new float[] {100 * (7.0 / 12), 100 * (temperature - 6500) / 3500, 100, alphaStandard};
-  } else {
+  } else { // BLUE
     return new float[] {100 * (7.0 / 12), 100, 100, alphaStandard};
   }
 }

@@ -31,9 +31,10 @@ class FireParticle {
     pos.add(vel);
     
     if(pos.y < highestFireParticleY && temperature > 1000){
-      highestFireParticleY = pos.y;
+      highestFireParticleY = pos.y; // fire height logic for level 3
     }
     
+    // temperature decay
     temperature -= 100;
     temperature -= (600 - pos.y) / 2;
     
