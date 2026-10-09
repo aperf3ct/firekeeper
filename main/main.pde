@@ -12,7 +12,7 @@ enum State{
 }
  
 State currentState = State.MENU;
-int currentLevel = 3;
+int currentLevel = 1;
 
 String typedText = "";
 Map<String, Object> wordsRules; 
